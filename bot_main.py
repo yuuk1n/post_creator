@@ -17,18 +17,16 @@ except ImportError:
 BOT_TOKEN = '8797384819:AAFnnavrCjTRABCbdopOnAtgVtUn-_96HyY'
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Корректное определение базового класса
+# Базовый класс для поддержки DND
 if HAS_DND:
     class BaseApp(ctk.CTk, TkinterDnD.DnDWrapper):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             try:
                 self.TkdndVersion = TkinterDnD._load_tkdnd(self)
-            except Exception as e:
-                print(f"Ошибка загрузки tkdnd: {e}")
-                self._dnd_active = False
-            else:
                 self._dnd_active = True
+            except:
+                self._dnd_active = False
 else:
     class BaseApp(ctk.CTk):
         def __init__(self, *args, **kwargs):
@@ -47,9 +45,9 @@ class App(BaseApp):
         self.main_frame = ctk.CTkScrollableFrame(self, fg_color="transparent")
         self.main_frame.pack(fill="both", expand=True, padx=5, pady=5)
         
-        # Исправление скролла колесиком для Linux (Arch)
-        self.main_frame.bind_all("<Button-4>", lambda e: self.main_frame._parent_canvas.yview_scroll(-1, "units"))
-        self.main_frame.bind_all("<Button-5>", lambda e: self.main_frame._parent_canvas.yview_scroll(1, "units"))
+        # Умный скролл для Linux
+        self.bind_all("<Button-4>", self._on_mousewheel)
+        self.bind_all("<Button-5>", self._on_mousewheel)
 
         # ЗАГОЛОВОК
         self.header = ctk.CTkLabel(self.main_frame, text="TG CONSTRUCTOR", font=("Impact", 35), text_color="#24A1DE")
@@ -65,16 +63,16 @@ class App(BaseApp):
         # ТЕКСТ ПОСТА
         self.text_card = ctk.CTkFrame(self.main_frame, fg_color="#2B2B2B", corner_radius=15)
         self.text_card.pack(pady=10, padx=20, fill="x")
-        ctk.CTkLabel(self.text_card, text="ТЕКСТ ПОСТА (Ctrl+B, I, K, A)", font=("Arial", 12, "bold")).pack(pady=(10,0))
+        ctk.CTkLabel(self.text_card, text="ТЕКСТ ПОСТА (Ctrl+B, I, K, A, Z, V)", font=("Arial", 12, "bold")).pack(pady=(10,0))
         
-        self.text_msg = ctk.CTkTextbox(self.text_card, width=500, height=180, border_width=2, font=("Consolas", 15))
+        self.text_msg = ctk.CTkTextbox(self.text_card, width=500, height=180, border_width=2, font=("Consolas", 15), undo=True)
         self.text_msg.pack(pady=15, padx=15)
         self.setup_text_formatting(self.text_msg)
 
         # МЕДИА
         self.media_card = ctk.CTkFrame(self.main_frame, fg_color="#2B2B2B", corner_radius=15)
         self.media_card.pack(pady=10, padx=20, fill="x")
-        ctk.CTkLabel(self.media_card, text="МЕДИА (Перетяни файл сюда или Ctrl+V)", font=("Arial", 12, "bold")).pack(pady=(10,0))
+        ctk.CTkLabel(self.media_card, text="МЕДИА (Путь или Ctrl+V для скриншота)", font=("Arial", 12, "bold")).pack(pady=(10,0))
         
         self.media_path = ctk.CTkEntry(self.media_card, placeholder_text="Путь к файлу...", height=35)
         self.media_path.pack(side="left", fill="x", expand=True, padx=(15, 5), pady=15)
@@ -111,14 +109,24 @@ class App(BaseApp):
                                      fg_color="#28a745", hover_color="#218838", height=65, font=("Arial", 22, "bold"))
         self.send_btn.pack(pady=30, padx=20, fill="x")
 
-        # Активация DND
         if self._dnd_active:
             self.drop_target_register(DND_FILES)
             self.dnd_bind('<<Drop>>', self.handle_drop)
 
+    def _on_mousewheel(self, event):
+        widget = self.winfo_containing(event.x_root, event.y_root)
+        if widget and ("textbox" in str(widget).lower() or "text" in str(widget).lower()):
+            return 
+        if event.num == 4:
+            self.main_frame._parent_canvas.yview_scroll(-1, "units")
+        elif event.num == 5:
+            self.main_frame._parent_canvas.yview_scroll(1, "units")
+
     def add_common_binds(self, widget):
         widget.bind("<Control-a>", lambda e: self.select_all(e, widget))
         widget.bind("<Control-A>", lambda e: self.select_all(e, widget))
+        if isinstance(widget, ctk.CTkEntry):
+            widget.bind("<Control-v>", lambda e: self.handle_entry_paste(e, widget))
 
     def select_all(self, event, widget):
         if isinstance(widget, ctk.CTkTextbox):
@@ -133,24 +141,55 @@ class App(BaseApp):
         widget.bind("<Control-b>", lambda e: self.wrap_selection(widget, "<b>", "</b>"))
         widget.bind("<Control-i>", lambda e: self.wrap_selection(widget, "<i>", "</i>"))
         widget.bind("<Control-k>", lambda e: self.add_hyperlink(widget))
+        widget.bind("<Control-v>", lambda e: self.handle_text_paste(e, widget))
+
+    def handle_text_paste(self, event, widget):
+        try:
+            text = self.clipboard_get()
+            if widget.tag_ranges("sel"):
+                widget.delete("sel.first", "sel.last")
+            widget.insert("insert", text)
+        except: pass
+        return "break"
+
+    def handle_entry_paste(self, event, widget):
+        try:
+            text = self.clipboard_get()
+            try:
+                start = widget.index("sel.first")
+                end = widget.index("sel.last")
+                widget.delete(start, end)
+            except: pass
+            widget.insert("insert", text)
+        except: pass
+        return "break"
 
     def wrap_selection(self, widget, open_tag, close_tag):
         try:
-            sel_start = widget.index("sel.first")
-            sel_end = widget.index("sel.last")
-            content = widget.get(sel_start, sel_end)
-            widget.delete(sel_start, sel_end)
-            widget.insert(sel_start, f"{open_tag}{content}{close_tag}")
+            if widget.tag_ranges("sel"):
+                start = widget.index("sel.first")
+                end = widget.index("sel.last")
+                content = widget.get(start, end)
+                widget.delete(start, end)
+                widget.insert(start, f"{open_tag}{content}{close_tag}")
         except: pass
         return "break"
 
     def add_hyperlink(self, widget):
-        url = ctk.CTkInputDialog(text="Введите URL:", title="Ссылка").get_input()
-        if url: self.wrap_selection(widget, f'<a href="{url}">', '</a>')
+        url = ctk.CTkInputDialog(text="Введите URL или @username:", title="Вставка гиперссылки").get_input()
+        if url:
+            url = url.strip()
+            # Микрофикс: авто-формат ссылки
+            if url.startswith("@"):
+                url = f"https://t.me/{url[1:]}"
+            elif not url.startswith(("http://", "https://")) and not url.startswith("-"):
+                url = f"https://t.me/{url}"
+                
+            self.wrap_selection(widget, f'<a href="{url}">', '</a>')
         return "break"
 
     def handle_drop(self, event):
-        path = event.data.strip('{}')
+        path = event.data.strip('{}') 
         if os.path.exists(path):
             self.media_path.delete(0, "end")
             self.media_path.insert(0, path)
@@ -192,7 +231,6 @@ class App(BaseApp):
             messagebox.showerror("Ошибка", "Введите канал!")
             return
 
-        # Умная обработка ссылки
         if not chan.startswith("-100") and not chan.startswith("@"):
             chan = "@" + chan.split('/')[-1]
 
@@ -203,7 +241,6 @@ class App(BaseApp):
             for t_e, u_e in self.btns_inputs:
                 t, u = t_e.get().strip(), u_e.get().strip()
                 if t and u:
-                    # ФИКС: Удаляем теги из кнопок (они там не работают)
                     clean_t = re.sub(r'<[^>]+>', '', t)
                     if u.startswith("@"): u = f"https://t.me/{u[1:]}"
                     elif not u.startswith("http"): u = f"https://t.me/{u}"
@@ -212,14 +249,15 @@ class App(BaseApp):
 
             if media and os.path.exists(media):
                 with open(media, 'rb') as f:
-                    if media.lower().endswith(('.mp4', '.mov')):
+                    ext = media.lower()
+                    if ext.endswith(('.mp4', '.mov')):
                         bot.send_video(chan, f, caption=text, reply_markup=markup, parse_mode="HTML")
                     else:
                         bot.send_photo(chan, f, caption=text, reply_markup=markup, parse_mode="HTML")
             else:
                 bot.send_message(chan, text, reply_markup=markup, parse_mode="HTML")
             
-            messagebox.showinfo("Успех", "Отправлено!")
+            messagebox.showinfo("Успех", "Готово!")
         except Exception as e:
             messagebox.showerror("Ошибка", str(e))
 
