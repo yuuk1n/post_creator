@@ -1,0 +1,7 @@
+tickets_data/
+__pycache__/
+*.sqlite
+*.pdf
+*.exe
+*.venv
+.env
