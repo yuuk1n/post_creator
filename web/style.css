@@ -1,0 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'SF Pro Display', -apple-system, sans-serif; }
+
+body {
+    display: flex; height: 100vh; color: #fff; overflow: hidden;
+    background: linear-gradient(-45deg, #1c0f24, #4a235a, #2c1a3b, #5b2c6f);
+    background-size: 400% 400%; animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+/* Стекло (Glassmorphism) */
+.glass, .glass-panel, .glass-input {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Сайдбар */
+.sidebar { width: 220px; padding: 20px; display: flex; flex-direction: column; gap: 15px; border-radius: 0 20px 20px 0; z-index: 10;}
+.sidebar h2 { color: #f3a6ff; font-weight: 600; text-align: center; margin-bottom: 20px; }
+.nav-item { padding: 12px 15px; border-radius: 12px; cursor: pointer; transition: 0.3s; color: #d8c3e0; }
+.nav-item:hover, .nav-item.active { background: rgba(243, 166, 255, 0.2); color: #fff; border: 1px solid rgba(243, 166, 255, 0.3); }
+
+/* Контент */
+.main-content { flex: 1; padding: 20px; overflow-y: auto; }
+.tab-content { display: none; padding: 25px; animation: fadeIn 0.4s ease; }
+.tab-content.active { display: block; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+input[type="text"], textarea {
+    width: 100%; padding: 12px 15px; margin-bottom: 10px; color: #fff;
+    background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; outline: none; transition: 0.3s;
+}
+input[type="text"]:focus, textarea:focus { border-color: #f3a6ff; box-shadow: 0 0 10px rgba(243, 166, 255, 0.3); }
+textarea { height: 120px; resize: none; }
+
+.drop-zone {
+    padding: 20px; text-align: center; border: 2px dashed rgba(243, 166, 255, 0.5); cursor: pointer; transition: 0.3s;
+}
+.drop-zone:hover, .drop-zone.dragover { background: rgba(243, 166, 255, 0.1); border-color: #fff; }
+.drop-zone i { font-size: 24px; color: #f3a6ff; margin-bottom: 5px; }
+
+/* Кнопки */
+.btn-glass {
+    width: 100%; padding: 15px; border: 1px solid rgba(255,255,255,0.2); border-radius: 15px;
+    background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.3s;
+}
+.btn-glass:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
+.btn-glow { background: linear-gradient(135deg, rgba(212, 59, 255, 0.4), rgba(255, 77, 148, 0.4)); border-color: rgba(255, 255, 255, 0.4); }
+.btn-glow:hover { box-shadow: 0 0 20px rgba(243, 166, 255, 0.6); }
+.btn-copy { background: rgba(0, 200, 83, 0.3); border-color: rgba(0, 255, 106, 0.5); margin-top: 10px; }
+
+/* Телефон (Точная копия ТГ) */
+.phone-preview {
+    width: 320px; min-width: 320px; height: 90vh; margin: 20px;
+    background: #0f0f0f url('https://i.pinimg.com/736x/8c/98/99/8c98994518b575bfd8c949e91d20548b.jpg') center/cover;
+    border-radius: 40px; border: 12px solid #222; position: relative; display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: -10px 10px 30px rgba(0,0,0,0.5);
+}
+.phone-notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 120px; height: 25px; background: #222; border-radius: 0 0 15px 15px; z-index: 2; }
+.phone-header { background: rgba(28, 28, 30, 0.9); backdrop-filter: blur(10px); padding: 35px 15px 10px; display: flex; align-items: center; border-bottom: 1px solid #333; z-index: 1;}
+.ph-avatar { width: 36px; height: 36px; border-radius: 50%; background: #555; margin-right: 10px; background-size: cover; background-position: center;}
+.ph-name { font-weight: 600; font-size: 15px; }
+.ph-sub { font-size: 12px; color: #888; }
+.phone-chat { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; justify-content: flex-end; }
+.msg-bubble { background: rgba(33, 33, 36, 0.85); padding: 10px; border-radius: 15px 15px 15px 5px; max-width: 95%; margin-bottom: 10px; font-size: 14px; line-height: 1.4; border: 1px solid rgba(255,255,255,0.05);}
+.msg-media { width: 100%; height: 150px; background: #444; border-radius: 8px; margin-bottom: 8px; background-size: cover; background-position: center;}
+.msg-inline-btns { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
+.msg-inline-btns div { background: rgba(255,255,255,0.1); padding: 8px; text-align: center; border-radius: 8px; font-size: 13px; color: #4db8ff; }
+.msg-reactions { display: flex; gap: 5px; margin-top: 8px; }
+.msg-reactions span { background: rgba(255,255,255,0.15); padding: 4px 8px; border-radius: 12px; font-size: 12px; }
+
+/* Прогресс бар */
+.progress-container { background: rgba(0,0,0,0.3); border-radius: 10px; padding: 5px; }
+.progress-bar { width: 0%; height: 8px; background: linear-gradient(90deg, #d43bff, #ff4d94); border-radius: 5px; transition: 0.4s ease; }
+#progress-text { font-size: 12px; text-align: center; margin-top: 5px; color: #ccc; }
+
+.mt-3 { margin-top: 15px; } .btn-row { display: flex; gap: 10px; }
+.reactions-box { display: flex; flex-wrap: wrap; gap: 10px; padding: 10px;}
+.reactions-box label { cursor: pointer; display: flex; align-items: center; gap: 5px;}
+
+/* Toasts (Уведомления) */
+#toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+.toast { background: rgba(30, 30, 30, 0.9); backdrop-filter: blur(10px); color: #fff; padding: 15px 20px; border-radius: 12px; border-left: 4px solid #f3a6ff; box-shadow: 0 5px 15px rgba(0,0,0,0.3); animation: slideIn 0.3s forwards; }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+/* Новые стили для панели инструментов и кнопок */
+.format-toolbar {
+    display: flex; gap: 8px; margin-top: 15px; margin-bottom: 5px;
+}
+.btn-format {
+    background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px; color: #fff; padding: 8px 15px; cursor: pointer; transition: 0.3s; font-size: 15px;
+}
+.btn-format:hover { 
+    background: rgba(243, 166, 255, 0.3); transform: translateY(-2px); 
+}
+.btn-small { 
+    padding: 8px 12px; font-size: 13px; border-radius: 10px; width: auto; margin-top: 10px;
+}
+/* Подсветка активной зоны для Ctrl+V */
+.active-zone {
+    border-color: #00e676 !important;
+    background: rgba(0, 230, 118, 0.1) !important;
+}

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>TG Post Builder Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="text/javascript" src="/eel.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <div id="toast-container"></div>
+
+    <div class="sidebar glass">
+        <h2><i class="fa-brands fa-telegram"></i> Builder</h2>
+        <div class="nav-item active" onclick="switchTab('builder')"><i class="fa-solid fa-hammer"></i> Конструктор</div>
+        <div class="nav-item" onclick="switchTab('settings')"><i class="fa-solid fa-gear"></i> Настройки</div>
+    </div>
+
+    <div class="main-content">
+        <div id="tab-builder" class="tab-content active glass-panel">
+            <h3>Создание канала и поста</h3>
+            <div class="input-group">
+                <input type="text" id="c_name" placeholder="Название канала">
+                <input type="text" id="c_user" placeholder="Юзернейм (без @)">
+                <input type="text" id="c_bio" placeholder="Описание (Bio)">
+            </div>
+            
+            <!-- Зона Аватарки -->
+            <div class="drop-zone glass" id="avatar-drop" onclick="browseFile('avatar_path')">
+                <i class="fa-solid fa-image"></i>
+                <p>Аватарка: Перетащи, Ctrl+V или кликни</p>
+                <button class="btn-glass btn-small mt-3" onclick="pasteFromClipboardBtn('avatar_path', event)">
+                    <i class="fa-solid fa-paste"></i> Вставить из буфера
+                </button>
+                <input type="hidden" id="avatar_path">
+            </div>
+
+            <!-- Панель Форматирования текста -->
+            <div class="format-toolbar mt-3">
+                <button class="btn-format" onclick="formatText('b')" title="Жирный"><i class="fa-solid fa-bold"></i></button>
+                <button class="btn-format" onclick="formatText('i')" title="Курсив"><i class="fa-solid fa-italic"></i></button>
+                <button class="btn-format" onclick="formatText('u')" title="Подчеркнутый"><i class="fa-solid fa-underline"></i></button>
+                <button class="btn-format" onclick="formatText('s')" title="Зачеркнутый"><i class="fa-solid fa-strikethrough"></i></button>
+                <button class="btn-format" onclick="formatText('a')" title="Ссылка"><i class="fa-solid fa-link"></i></button>
+            </div>
+            <textarea id="p_text" class="glass-input mt-1" placeholder="Текст поста (поддерживает HTML)..."></textarea>
+            
+            <!-- Зона Медиа поста -->
+            <div class="drop-zone glass mt-3" id="media-drop" onclick="browseFile('media_path')">
+                <i class="fa-solid fa-photo-film"></i>
+                <p>Медиа поста: Перетащи, Ctrl+V или кликни</p>
+                <button class="btn-glass btn-small mt-3" onclick="pasteFromClipboardBtn('media_path', event)">
+                    <i class="fa-solid fa-paste"></i> Вставить из буфера
+                </button>
+                <input type="hidden" id="media_path">
+            </div>
+
+            <div class="buttons-setup mt-3">
+                <div class="btn-row">
+                    <input type="text" id="btn1_t" placeholder="Текст кнопки 1"> <input type="text" id="btn1_u" placeholder="URL">
+                </div>
+            </div>
+
+            <!-- Реакции -->
+            <div class="reactions-box mt-3 glass">
+                <label><input type="checkbox" value="👍" checked> 👍</label>
+                <label><input type="checkbox" value="❤️" checked> ❤️</label>
+                <label><input type="checkbox" value="🔥" checked> 🔥</label>
+                <label><input type="checkbox" value="🥰"> 🥰</label>
+                <label><input type="checkbox" value="🎉"> 🎉</label>
+            </div>
+
+            <div class="progress-container mt-3" style="display: none;">
+                <div class="progress-bar" id="progress-bar"></div>
+                <p id="progress-text">Подготовка...</p>
+            </div>
+
+            <button class="btn-glass btn-glow mt-3" onclick="startProcess()">
+                <i class="fa-solid fa-rocket"></i> ЗАПУСТИТЬ
+            </button>
+        </div>
+
+        <div id="tab-settings" class="tab-content glass-panel">
+            <h3>Настройки API</h3>
+            <input type="text" id="api_id" placeholder="API ID">
+            <input type="text" id="api_hash" placeholder="API HASH">
+            <input type="text" id="bot_token" placeholder="BOT TOKEN">
+            <input type="text" id="bot_user" placeholder="BOT USERNAME (с @)">
+            <button class="btn-glass mt-3" onclick="saveSettings()">Сохранить</button>
+        </div>
+    </div>
+
+    <!-- Телефон Превью -->
+    <div class="phone-preview">
+        <div class="phone-notch"></div>
+        <div class="phone-header">
+            <div class="ph-avatar"></div>
+            <div class="ph-info">
+                <div class="ph-name" id="prev-name">Название</div>
+                <div class="ph-sub">subscribers</div>
+            </div>
+        </div>
+        <div class="phone-chat">
+            <div class="msg-bubble glass">
+                <div class="msg-media" id="prev-media" style="display:none;"></div>
+                <div class="msg-text" id="prev-text">Текст поста...</div>
+                <div class="msg-inline-btns" id="prev-btns"></div>
+                <div class="msg-reactions" id="prev-reacs">
+                    <span>👍 1</span><span>❤️ 1</span><span>🔥 1</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
