@@ -10,7 +10,7 @@ from telethon.errors import UsernameOccupiedError, FloodWaitError, UsernameInval
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Сохраняем твой список устройств
+# Твой список устройств
 DEVICES =[("Samsung SM-G998B", "Android 13"), ("iPhone 15 Pro Max", "iOS 17.1")]
 
 class TelethonLogic:
@@ -31,9 +31,9 @@ class TelethonLogic:
             await asyncio.wait_for(client.connect(), timeout=20.0)
             logger.info("[Telethon] Соединение установлено.")
         except asyncio.TimeoutError:
-            raise Exception("Файл сессии занят другим процессом. Перезагрузи ПК или закрой все окна Python.")
+            raise Exception("Файл сессии заблокирован! Убедись, что старое окно закрыто.")
 
-        progress_callback(10, "Сессия подключена. Создаю канал...")
+        progress_callback(10, "Создаю канал...")
         await asyncio.sleep(random.uniform(2, 4))
         
         try:
@@ -43,8 +43,8 @@ class TelethonLogic:
             channel = result.chats[0]
             channel_id = int(f"-100{channel.id}")
             
-            progress_callback(30, "Канал создан. Юзернейм...")
-            await asyncio.sleep(random.uniform(3, 5))
+            progress_callback(30, "Настройка юзернейма...")
+            await asyncio.sleep(random.uniform(2, 4))
 
             # 2. ЮЗЕРНЕЙМ
             current_user = username
@@ -57,13 +57,13 @@ class TelethonLogic:
                         await client(functions.channels.UpdateUsernameRequest(channel=channel, username=target_user))
                         current_user = target_user
                         username_set = True
-                        logger.info(f"[Telethon] Юзернейм @{current_user} успешно привязан.")
+                        logger.info(f"[Telethon] Юзернейм @{current_user} привязан.")
                         break
                     except UsernameOccupiedError:
                         await asyncio.sleep(2)
                         suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=2))
                     except UsernameInvalidError:
-                        raise Exception(f"Юзернейм @{target_user} запрещен Telegram (используй только латиницу).")
+                        raise Exception(f"Юзернейм @{target_user} недопустим (используй только английские буквы).")
             except FloodWaitError:
                 username_set = False
 
@@ -73,7 +73,7 @@ class TelethonLogic:
                 file = await client.upload_file(avatar_path)
                 await client(functions.channels.EditPhotoRequest(channel=channel, photo=file))
                 logger.info("[Telethon] Аватар установлен.")
-                await asyncio.sleep(random.uniform(2, 4))
+                await asyncio.sleep(2)
 
             # 4. АДМИН-ПРАВА БОТУ
             progress_callback(70, f"Настройка админа {bot_user}...")
@@ -94,27 +94,30 @@ class TelethonLogic:
                     available_reactions=types.ChatReactionsSome(reactions=[types.ReactionEmoji(em) for em in set(reactions)])
                 ))
 
-            # --- ИСПРАВЛЕННЫЙ БЛОК УДАЛЕНИЯ СЕРВИСНЫХ СООБЩЕНИЙ ---
-            progress_callback(90, "Очистка сервисных уведомлений...")
-            logger.info("[Telethon] Ожидание системных уведомлений для удаления...")
-            await asyncio.sleep(5) # Ждем, чтобы сообщения 1 и 2 гарантированно появились
-            
+            # 6. ОЧИСТКА СЕРВИСНЫХ СООБЩЕНИЙ
+            progress_callback(90, "Очистка чата...")
+            await asyncio.sleep(4)
             to_delete = []
-            # Ищем системные сообщения (типа MessageService)
             async for msg in client.iter_messages(channel, limit=20):
                 if isinstance(msg, types.MessageService) or msg.action:
                     to_delete.append(msg.id)
-            
             if to_delete:
                 await client.delete_messages(channel, to_delete)
-                logger.info(f"[Telethon] Удалены системные сообщения: {to_delete}")
+                logger.info(f"[Telethon] Системные уведомления удалены: {to_delete}")
+
+            # --- НОВАЯ ФУНКЦИЯ: ВЫХОД ИЗ КАНАЛА ---
+            progress_callback(95, "Выхожу из канала...")
+            logger.info("[Telethon] Покидаю канал (функция 'Покинуть канал')...")
+            await client(functions.channels.LeaveChannelRequest(channel=channel))
+            logger.info("[Telethon] Аккаунт успешно покинул канал.")
 
             await client.disconnect()
             
+            # Перемещаем сессию, чтобы не использовать её повторно
             if not os.path.exists("old_sessions"): os.makedirs("old_sessions")
             shutil.move(f"sessions/{session_file}.session", f"old_sessions/{session_file}.session")
             
-            progress_callback(95, "Telethon завершил работу...")
+            progress_callback(100, "Готово! Telethon завершил работу.")
             return current_user if username_set else None, channel_id
 
         except Exception as e:
